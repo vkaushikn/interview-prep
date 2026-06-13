@@ -8,4 +8,4 @@ Each entry should aim to:
 - Note which case study/example first surfaced it.
 
 ## Index
-(add entries here as they're created)
+- [Read-Your-Own-Writes (RYOW) Consistency](read_your_own_writes.md) — staleness/propagation-delay between a write and the read path seeing it.
