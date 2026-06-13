@@ -10,3 +10,4 @@ Each entry should aim to:
 ## Index
 - [Read-Your-Own-Writes (RYOW) Consistency](read_your_own_writes.md) — staleness/propagation-delay between a write and the read path seeing it.
 - [Order-of-Magnitude Capacity Benchmarks](capacity_benchmarks.md) — per-node throughput rules of thumb for judging "easy / hard / infeasible" from a derived throughput number.
+- [Latency Numbers Worth Knowing](latency_numbers.md) — human perception thresholds and the memory/SSD/network access ladder, incl. why cross-region round trips dominate.
