@@ -105,6 +105,9 @@ This table is the running evidence for every architectural choice above: numbers
 
 ---
 
+## See also
+- [news_feed_canonical_design.md](news_feed_canonical_design.md) — maps this design against the "textbook" skeleton for this problem, and flags the one place we deliberately diverged (feed cache: reference vs. denormalized content).
+
 ## Open items / things to revisit
 - Freshness SLA reopens the read-your-own-writes question deferred in A.
 - Tie-breaking for same-timestamp posts in the chronological merge.
