@@ -2,10 +2,14 @@
 
 Use this rubric to structure technical case studies and high-level infrastructure design rounds. It forces an upfront focus on physical boundaries before proposing architectural decisions.
 
-## A — Assumptions
-*   **Operational Scale:** Define the total footprint upfront (e.g., total compute cluster size, node counts, or throughput requirements).
-*   **Workload Profiles:** Establish read/write ratios, peak-to-average load factors, and typical data payload sizes.
+## A — Assumptions & Approximations
+Two distinct activities, both belonging to this first step:
+
+*   **Assumptions (scope/model simplifications):** Define what's in and out of scope before designing — e.g., which features are included, which are explicitly deferred (recommendation systems, infinite scroll, etc.), and what the simplified model of the problem looks like.
+*   **Approximations (sizing the problem):** Back-of-envelope / Fermi estimates of scale — total users, throughput (QPS), read/write ratios, peak-to-average load factors, typical payload sizes, and the *shape* of key distributions (e.g., is a relevant population roughly uniform, or does it have long-tail outliers?).
 *   **Data Growth:** Project short-term and multi-quarter data accumulation vectors.
+
+Sizing isn't optional — without rough numbers, C/I/D can't be evaluated concretely (e.g., whether a design choice is "good" often depends entirely on the scale and distribution shape assumed here).
 
 ## C — Constraints
 *   **Physical Bounds:** Define hardware limitations (e.g., total available GPU/TPU memory, node-to-node interconnect bandwidth, or network fabric topology).
