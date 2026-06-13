@@ -33,6 +33,8 @@ To design this allocation system systematically without breaking down into ad-ho
 *   **Eviction Cost:** Evicting a free-tier user is text-book simple (kill container/state), while forcing an on-demand small-paying customer off a node requires structured state-saving or checkpoint migration pipelines, introducing massive overhead.
 
 ### D — Decisions (The Architectural Blueprint)
+
+#### Version 1 (Gemini)
 *   **Dynamic Token-Bucket Rate Limiter:** Implement a centralized allocation engine that manages virtual tokens for capacity access based on customer class tier.
 *   **Multi-Queue Priority Scheduler:**
     *   *Queue 1 (Strict Pass-Through):* Bypasses the scheduler entirely via pre-allocated physical capacity slices reserved exclusively for contracted RIs.
@@ -40,10 +42,19 @@ To design this allocation system systematically without breaking down into ad-ho
     *   *Queue 3 (Opportunistic Throttler):* Fills the remaining gaps with Free Tier tasks using low-priority preemptible VM states that can be instantly destroyed via an automated backpressure signal.
 *   **Telemetry Feedback Loop:** A fast control loop checks localized cluster memory utilization every 500ms to calculate an active "eviction risk factor score," automatically stopping the entry of lower-tier workloads if regional headroom drops below a critical mathematical curve.
 
+#### Version 2 (Kaushik) — Three-Tier Offline/Online Decomposition
+Modeled on the Amazon FC scheduling pattern (rolling-horizon MILP scheduler + dynamic control module):
+
+*   **Nightly Mega-Solver (hours to solve):** Re-optimize a historical day with full hindsight, accounting for eviction and all tier constraints. Output is not a one-shot allocation, but an **operating curve** — e.g., "reserve X% of cluster for RI (never touch, even if smaller than contracted RI total), Y% threshold before throttling free tier," expressed as a function of time-of-day / utilization.
+*   **Hourly Mini-Solvers:** Lighter-weight re-optimization attuned to the current day's actual pattern, adjusting the nightly targets based on trailing last-hour data. Bridges the gap between yesterday's hindsight curve and today's reality.
+*   **Online Controller (fast, PID-like):** Just tracks the current target curve (as adjusted by the hourly solve) — admit/evict decisions are reactive, cheap, and don't require solving anything in the hot path.
+*   **Why this resolves the C-vs-D tension:** the "eviction hierarchy" and per-tier reservation thresholds aren't hard-coded rules *or* a live MILP — they're outputs of the offline/hourly layers, re-derived periodically. The online controller only has to react to deviation from the target curve.
+
 ---
 
 ## Notes / Open polish items
-- **C vs. D tension:** C hard-codes a linear eviction order (Free → Small Paying → Whale), while D proposes a MILP optimizing for revenue density. If the optimizer truly chooses based on revenue density, the eviction order is itself a decision variable, not a fixed constraint. Either resolution is defensible — but naming the tradeoff explicitly ("I hard-constrained eviction order because optimizing it in real time adds solve-time risk at the exact moment capacity needs freeing") is a strong, authentic design statement.
-- **Solver latency as a system-design constraint:** a 500ms MILP solve cadence is itself a latency budget. What's the fallback if the solver doesn't converge in time? (Same "exact vs. heuristic/warm-start" tradeoff as the caching primitive.)
-- **State & failure mode of the allocation engine itself:** where does token-bucket/queue state live — centralized vs. sharded per region? If the controller crashes, is the system fail-open (admit everything, risk SLA breach) or fail-closed (honor only pre-allocated RI slices, reject the rest)?
+- **C vs. D tension (Version 1):** C hard-codes a linear eviction order (Free → Small Paying → Whale), while D proposes a MILP optimizing for revenue density. If the optimizer truly chooses based on revenue density, the eviction order is itself a decision variable, not a fixed constraint. Either resolution is defensible — but naming the tradeoff explicitly ("I hard-constrained eviction order because optimizing it in real time adds solve-time risk at the exact moment capacity needs freeing") is a strong, authentic design statement. **Version 2 resolves this** by deriving the eviction thresholds offline/hourly rather than hard-coding or live-solving them.
+- **Solver latency as a system-design constraint (Version 1):** a 500ms MILP solve cadence is itself a latency budget. What's the fallback if the solver doesn't converge in time? (Same "exact vs. heuristic/warm-start" tradeoff as the caching primitive.) **Version 2 sidesteps this** — the only real-time component is the cheap PID-like controller.
+- **State & failure mode of the allocation engine itself:** where does token-bucket/queue state (V1) or target-curve state (V2) live — centralized vs. sharded per region? If the controller crashes, is the system fail-open (admit everything, risk SLA breach) or fail-closed (honor only pre-allocated RI slices, reject the rest)?
 - **Missing validation close:** what would you measure post-launch to confirm the design works — e.g., RI rejection rate = 0%, Whale SLA attainment %, free-tier preemption frequency.
+- **Temporal stationarity assumption (Version 2):** the operating curve implicitly assumes "last week today ≈ this week today" — which breaks for special events (e.g., a World Cup match driving an unusual traffic pattern in July). Generally a fair assumption, and expressing the curve as a *ratio/shape* (rather than absolute levels) makes it fairly robust to scale shifts. Still need a metric/guardrail that flags when the live pattern is deviating enough from the target curve that the curve itself (not just the online controller's tracking) is stale — i.e., distinguish "controller is lagging the target" from "the target itself is wrong today."
