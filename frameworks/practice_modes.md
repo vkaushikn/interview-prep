@@ -26,3 +26,18 @@ This is the HVAC-style "something breaks, how do you respond" pass, but it can e
 - A new problem starts in **Teacher mode** to build the design (ACID).
 - A second pass on the *same* design switches to **Critique mode** — either as an HVAC incident deep-dive, or as an interviewer-style stress test of the ACID itself.
 - Default to Teacher mode unless the user asks to switch.
+
+## OR/business-case problems: build both paths in Teacher mode
+
+For business-case/OR problems where [Step 0 (the decomposition fork)](system_design_acid.md) applies, Teacher mode should work through **both** paths before closing the case study:
+- The **decomposed/implementable** path (e.g., V-city style — simple within-cluster policy, simulation-validated).
+- The **rigorous OR formulation** (e.g., the full multi-commodity time-expanded LP).
+
+A "simple V-city" treatment of the decomposed path is sufficient — the point isn't to build two full production designs, it's to have *both* answers ready, since Critique mode (below) will demand whichever one the candidate didn't lead with.
+
+## Critique/Evaluator mode: checking for Step 0
+
+For OR/business-case problems, Critique mode should explicitly check whether the candidate opens with **Step 0** (the decomposition fork — naming the visible large coupled formulation and asking the interviewer which depth they want).
+
+- If the candidate **asks Step 0** first: the evaluator **randomly picks** which path the "interviewer" wants (rigorous LP vs. decomposed/implementable) and the candidate proceeds down that path — having already prepared both (per above), this should go smoothly.
+- If the candidate **skips Step 0** and just picks a direction unprompted: this is a flagged miss — call it out as a lost-points moment, the same way a missed clarifying question would be in a real interview, *regardless* of whether the direction they picked happened to match what the evaluator would have said.
