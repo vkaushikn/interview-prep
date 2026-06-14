@@ -14,3 +14,7 @@ Each entry should aim to:
 - [CDN vs. Geo-Distributed Edge Cache](cdn_vs_edge_cache.md) — CDNs cache shared content; personalized feeds need a regional KV store keyed by user, for locality not amplification.
 - [Merging a Sorted Stream Without Re-sorting](merge_sorted_stream_no_resort.md) — process new items in time order, head-push/tail-pop into affected lists — O(1), no sort.
 - [Reference vs. Denormalization in a Precomputed Cache](reference_vs_denormalization.md) — store an ID (extra read, single source of truth) vs. the full value (one read, fan-out on update) — same shape as push vs. pull.
+- [Newsvendor: Shortage vs. Overage Cost](newsvendor_shortage_overage.md) — the universal capacity-allocation cost structure; includes the supply-side mirror of demand-unconstraining (yield/show-up rates).
+- [Time-Expanded Networks for Lead Times](time_expanded_network_lead_times.md) — model transit/lead time as arcs between (location, time) nodes — turns lead time into ordinary flow-conservation bookkeeping.
+- [Countdown Chains for Deterministic Sojourn Time](countdown_chain_deterministic_sojourn.md) — track remaining commitment duration, not start time — exit is automatic when the countdown hits zero.
+- [Frozen / Firm / Free Zones in Rolling-Horizon Planning](frozen_firm_free_zones.md) — decisions with execution lead time become fixed inputs to future re-solves, preventing hourly plan-thrashing.
