@@ -18,3 +18,4 @@ Each entry should aim to:
 - [Time-Expanded Networks for Lead Times](time_expanded_network_lead_times.md) — model transit/lead time as arcs between (location, time) nodes — turns lead time into ordinary flow-conservation bookkeeping.
 - [Countdown Chains for Deterministic Sojourn Time](countdown_chain_deterministic_sojourn.md) — track remaining commitment duration, not start time — exit is automatic when the countdown hits zero.
 - [Frozen / Firm / Free Zones in Rolling-Horizon Planning](frozen_firm_free_zones.md) — decisions with execution lead time become fixed inputs to future re-solves, preventing hourly plan-thrashing.
+- [KV Cache: Per-Sequence Memory in LLM Inference](kv_cache.md) — why each active request holds growing, per-sequence GPU memory, and how prefix caching shares it across requests (reference vs. denormalization, again).
