@@ -87,6 +87,19 @@ All three resolve into one shape: **the LP's output is a recommendation to human
 
 ---
 
+## Postscript: how this should have opened
+
+In hindsight, this entire ACID should have started with the **decomposition fork** (see [system_design_acid.md, Step 0](../frameworks/system_design_acid.md)): the prompt visibly invites a large multi-commodity, time-expanded LP across all zones — likely *why* it was chosen as a prompt. Naming that upfront, and asking whether the interviewer wants the rigorous formulation or a more implementable path, would have:
+1. Demonstrated the full LP is *visible* (not avoided out of inability), and
+2. Let the interviewer pick the depth — converting a 40-minute bet into an early, informative fork.
+
+Had "implementable system" been the answer, the V-city decomposition suggests a genuinely different (not just smaller) architecture:
+
+- **Across V-cities** (low-frequency, small-scale — M clusters, not N zones): the multi-commodity time-expanded LP, where it actually earns its complexity — cross-V-city transit has real lead-time/commitment structure worth modeling.
+- **Within a V-city** (transit costs small by construction of the decomposition): the fine-grained per-zone-per-hour state barely matters. Reduces to picking a **simple policy** (e.g., proportional allocation, threshold-based local dispatch) and validating it via **simulation-optimization over policy vectors** — the same CEM/Pareto-elites toolkit as the Azure case study's "Alternative D," reapplied in a second domain.
+
+This mirrors Azure's three-tier structure (nightly mega-solver / hourly mini-solver / online controller) — same hierarchical-decomposition shape, but the axis is **spatial** here rather than temporal. General lesson: decompose along whichever axis the lead-time/coupling structure actually breaks on, and match solver sophistication to where the coupling is real.
+
 ## See also
 - [practice_modes.md](../frameworks/practice_modes.md) — this case study was built in Teacher mode; a Critique-mode pass (HVAC-style: something breaks, can the design recover) is a natural follow-up.
 - Related concepts: [time_expanded_network_lead_times.md](../concepts/time_expanded_network_lead_times.md), [countdown_chain_deterministic_sojourn.md](../concepts/countdown_chain_deterministic_sojourn.md), [frozen_firm_free_zones.md](../concepts/frozen_firm_free_zones.md), [newsvendor_shortage_overage.md](../concepts/newsvendor_shortage_overage.md).
