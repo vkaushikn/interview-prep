@@ -19,3 +19,4 @@ Each entry should aim to:
 - [Countdown Chains for Deterministic Sojourn Time](countdown_chain_deterministic_sojourn.md) — track remaining commitment duration, not start time — exit is automatic when the countdown hits zero.
 - [Frozen / Firm / Free Zones in Rolling-Horizon Planning](frozen_firm_free_zones.md) — decisions with execution lead time become fixed inputs to future re-solves, preventing hourly plan-thrashing.
 - [KV Cache: Per-Sequence Memory in LLM Inference](kv_cache.md) — why each active request holds growing, per-sequence GPU memory, and how prefix caching shares it across requests (reference vs. denormalization, again).
+- [Inference Serving Pipeline: From Request to Streamed Token](inference_serving_pipeline.md) — classifier/router/queue/scheduler/decode/eviction loop, and the roofline model (prefill = compute-bound, decode = memory-bound) driving per-tick admission decisions.
