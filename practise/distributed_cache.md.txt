@@ -1,0 +1,49 @@
+# Problem
+
+A distributed cache is a system that stores data as key-value pairs in memory across
+multiple machines in a network. Unlike single-node caches that are limited by the
+resources of one machine, distributed caches scale horizontally across many nodes to
+handle massive workloads. The cache cluster works together to partition and replicate
+data, ensuring high availability and fault tolerance when individual nodes fails
+
+# Assumptions
+1. Read dominated (which is why we want different reads to go to different nodes to distribute the load)
+2. TTL must be enforced for each key, i.e., evict keys more than TTL seconds old.
+3. If the distributed space is full, evict the Least Recently Used Key.
+
+# Approximations
+?? (do we need any here -- the nature of the problem is that it is distributed) - may be number of replica of the follower nodes based on the read requirements? 
+
+# Constraints
+1. C + P (out of CAP) v/s A + P (miss out C)
+   If we prefer consistency, then we actually are not being a "cache", i.e., writes will be slow and might just reduce the read throughput, but if we do Availability (hence, some reads may be stale) then that depends on the use-case (e.g., likes on a post -- it is okay to be stale, but something more important as Rate limiting, it is not okay to be stale). Maybe this depends on the context of the problem? 
+
+2. Anything with weak consistency? Not sure here
+
+# Incentives (Trade-offs)
+I am assuming we cannot keep another non-distributed cache for LRU or TTL - If we can do that, we might be able to better do LRU/ TTL eviction -- otherwise, we have to do some approximate algorithm to ensure these
+
+Target cache hit (especially misses when the key was in the distributed cache but not on the replica that we query). If we allow for this number to be high, we are not really much of a cache, but we cannot drive it down to zero.
+
+Hot key issue (how to handle that hot key)
+
+# Decisions / Design
+
+What is stopping us from doing a "Ring" shape for the sharding, similar to consistent hashing? But may be start simpler -- N nodes (and each node has some M followers - the followers are independent).  We route the incoming request to one of the N nodes based on `hash % N`. Once there, we can select one of the M copies based on utilization etc. 
+
+Write --> to the leader -->(key, (value, EntryTime, 0 --> read_counts)) --> propagate to the M Followers. Each follower has its own counter
+Write to a global counter (just keeps count of the total keys)
+
+Daemon on each node can clean up after TTL (based on local time). Only the Leader reports a cleanup to the global counter to decrement the key count. 
+
+Read --> Whichever shard picks it up, updates its read_count. DAemon syncs the read count periodically with the Leader. The leader has the {key -> total_count}
+
+Leader keeps track of the least used key and its count
+
+When count exceeds total count, the Central asks each leader to provide the key and starts the process of evicting -- leader sends evict message to all followers
+
+Metrics is taken...
+
+Hot shard -- jitter etc
+
+
