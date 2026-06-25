@@ -40,9 +40,30 @@ Don't memorize the table above as trivia — memorize the *pattern*: each layer 
 
 Being within 10x of the "real" number is the bar in an interview — the process of reasoning down the ladder is what's being graded, not recall of a spec sheet.
 
-Two more anchors to keep alongside it:
+Three more anchors to keep alongside it:
 - **Network per node:** ~1–10 Gbps ≈ 100MB–1GB/sec. Use this when payload size is the constraint, not op count.
-- **Storage per node:** a few TB is the practical ceiling people use in interviews (less about disk size, more about keeping rebalance/recovery time on failure sane). `total data size ÷ few TB ≈ node count` for the storage dimension.
+- **Storage per node — two different numbers, don't conflate them:**
+  - *Hard ceiling* (what a managed instance can physically hold): ~50–100TB (e.g., Aurora tops out near 128TB).
+  - *Practical shard target* (what you'd actually provision): a few TB — chosen not because more won't fit, but to keep rebalance/recovery time on failure sane. `total data size ÷ few TB ≈ node count` uses this second number, not the hard ceiling.
+- **RAM per node:** ~0.5–4TB realistic on production hardware (exotic boxes reach ~24TB but are rare/expensive — don't assume you get one). This is often the *real* binding constraint, ahead of storage and even the QPS ladder above: an index needs to live mostly in RAM to serve fast lookups, and a multi-TB **index** (not the whole table) can demand more RAM than a node realistically has, even while the underlying table's disk footprint is nowhere near its storage ceiling.
+
+## Row-size estimation buckets
+
+For sizing a metadata table (rows × bytes/row → total bytes), collapse every column into one of three buckets instead of trying to recall exact type sizes:
+
+| Bucket | Size | What goes here |
+|---|---|---|
+| Number | 8 bytes | Any ID, timestamp, counter, boolean, enum |
+| Short text | ~50 bytes | Name, email, username, short label |
+| Long text / URL / path | ~150 bytes | URLs, file paths, descriptions |
+
+Apply a **1.5–2x multiplier** at the end for row/index overhead (transaction metadata, padding, the primary-key index itself).
+
+Why these three numbers: 8 bytes = one int64 = a CPU word, covers any numeric field. 50 bytes ≈ a couple of English words, covers names/emails/labels. 150 bytes covers real-world URLs/paths, which commonly run 50–200 characters. Getting the order of magnitude right matters far more than precision here — a 2x error in row size rarely moves the answer across a TB/PB/EB boundary, but using the wrong number of zeros does.
+
+**Unit ladder** (in case it's not already automatic): KB → MB → GB → TB → PB → EB = 10³ → 10⁶ → 10⁹ → 10¹² → 10¹⁵ → 10¹⁸ bytes, each step exactly 1000x.
+
+**Time conversion used throughout this file's QPS math:** 1 day ≈ 10⁵ seconds (real: 86,400); 1 year ≈ 3×10⁷ seconds, or just multiply a daily number by 365.
 
 ## The 60-second recipe
 

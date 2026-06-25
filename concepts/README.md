@@ -20,3 +20,4 @@ Each entry should aim to:
 - [Frozen / Firm / Free Zones in Rolling-Horizon Planning](frozen_firm_free_zones.md) — decisions with execution lead time become fixed inputs to future re-solves, preventing hourly plan-thrashing.
 - [KV Cache: Per-Sequence Memory in LLM Inference](kv_cache.md) — why each active request holds growing, per-sequence GPU memory, and how prefix caching shares it across requests (reference vs. denormalization, again).
 - [Inference Serving Pipeline: From Request to Streamed Token](inference_serving_pipeline.md) — classifier/router/queue/scheduler/decode/eviction loop, and the roofline model (prefill = compute-bound, decode = memory-bound) driving per-tick admission decisions.
+- [CRDTs vs. Operational Transformation](crdt_vs_ot.md) — two answers to real-time collaborative-edit conflicts: peer-to-peer mergeable identifiers (CRDT) vs. a central sequencer + transform function (OT); plus site_id vs. user_id layering and the offline-divergence wall.
