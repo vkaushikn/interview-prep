@@ -66,12 +66,14 @@ Each layer has well-understood optimization space (codec, CDN placement, queue t
 Streamer device
     → Ingest service (2000 instances, one per active stream)
         → chunks video into 2–10s HLS segments
-        → writes segments to blob storage (S3 / GCS)
-        → updates HLS manifest (m3u8) per stream
-    → CDN origin servers pull from blob storage
-    → CDN edge nodes cache latest segment globally
-    → Viewers pull latest segment from nearest CDN edge (standard HTTP)
+        → writes segment files to blob storage (segment_0042.ts, segment_0043.ts, ...)
+        → updates HLS manifest (playlist.m3u8) in blob storage after each segment
+    → CDN origin pulls manifest + segments from blob storage
+    → CDN edge caches manifest (TTL: 2–5s) and segments globally
+    → Viewer HLS player polls manifest every ~10s → fetches newest unseen segment
 ```
+
+**The manifest is the queue.** `playlist.m3u8` is a short text file listing available segments in order with a sequence number (`EXT-X-MEDIA-SEQUENCE`). The player reads it, downloads whatever segment it hasn't seen yet, waits one segment duration, then re-fetches the manifest. Ordering is implicit in the sequence number — no Kafka, no separate queue service needed on the video path.
 
 **Why blob storage as the handoff point**: decouples ingest rate from CDN pull rate. Ingest writes once; CDN edge replicates globally. No direct ingest-to-viewer connection.
 
