@@ -131,6 +131,99 @@ Use `asyncio.Lock` + `async def` if your server uses an event loop (FastAPI, aio
 
 ---
 
+---
+
+## Async Web Crawler — Protocol-Based Design
+
+Protocols define the interface; implementations are swapped at construction time. `WebCrawler` only depends on the protocols, never on concrete classes.
+
+```python
+import asyncio
+from typing import Protocol
+
+class BlobInterface(Protocol):
+    async def write(self, url: str, data: str) -> str: ...
+
+class FetchInterface(Protocol):
+    async def fetch(self, url: str) -> tuple[str, list[str]]: ...
+
+class MockBlobWriter:
+    def __init__(self):
+        self.store: dict[str, str] = {}
+
+    async def write(self, url: str, data: str) -> str:
+        await asyncio.sleep(0.1)
+        self.store[url] = data
+        return f"blob://mock/{url}"
+
+class SameDomainFetcher:
+    def __init__(self, domain: str):
+        self.domain = domain
+
+    async def fetch(self, url: str) -> tuple[str, list[str]]:
+        await asyncio.sleep(0.1)
+        all_links = []                             # real impl: parse HTML, extract hrefs
+        child_urls = [u for u in all_links if u.startswith(self.domain)]
+        return f"data:{url}", child_urls
+
+class AllLinksFetcher:
+    async def fetch(self, url: str) -> tuple[str, list[str]]:
+        await asyncio.sleep(0.1)
+        all_links = []                             # real impl: parse HTML, extract hrefs
+        return f"data:{url}", all_links
+
+class VisitedUrls:
+    def __init__(self):
+        self._visited: set[str] = set()
+        self._lock = asyncio.Lock()
+
+    async def check_and_add(self, url: str) -> bool:
+        """Returns True if url is new (and marks it visited). False if already seen."""
+        async with self._lock:
+            if url in self._visited:
+                return False
+            self._visited.add(url)
+            return True
+
+class WebCrawler:
+    def __init__(self, fetcher: FetchInterface, blob: BlobInterface, max_workers: int = 20):
+        self.fetcher = fetcher
+        self.blob = blob
+        self.visited = VisitedUrls()
+        self.queue: asyncio.Queue[str] = asyncio.Queue()
+        self.max_workers = max_workers
+
+    async def _worker(self):
+        while True:
+            url = await self.queue.get()
+            data, child_urls = await self.fetcher.fetch(url)
+            await self.blob.write(url, data)
+            for child in child_urls:
+                if await self.visited.check_and_add(child):
+                    await self.queue.put(child)
+
+    async def crawl(self, start_url: str):
+        await self.visited.check_and_add(start_url)
+        await self.queue.put(start_url)
+        workers = [asyncio.create_task(self._worker()) for _ in range(self.max_workers)]
+        await asyncio.gather(*workers)
+
+# Usage
+crawler = WebCrawler(
+    fetcher=SameDomainFetcher(domain="https://example.com"),
+    blob=MockBlobWriter(),
+)
+asyncio.run(crawler.crawl("https://example.com"))
+```
+
+**Key patterns:**
+- `VisitedUrls.check_and_add` — lock is internal, never exposed. Check + add is atomic.
+- `asyncio.Queue.get()` — suspends worker if queue is empty; resumes when item arrives
+- `asyncio.create_task` — schedules coroutine on event loop without awaiting it immediately
+- `asyncio.gather` — waits for all workers (runs them concurrently)
+
+---
+
 ## LRU vs LFU
 
 - **LRU without DLL**: heap with lazy deletion works but O(log N) and stale entries accumulate
