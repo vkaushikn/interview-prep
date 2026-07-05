@@ -49,3 +49,15 @@ The merge is cheap — both are sorted chronologically, so it is a simple merge 
 | Game leaderboard (friends) | Score update | Fan-in at read | Fetch 100 scores in parallel, sort in memory |
 
 First surfaced in: News Feed case study (fan-out for normal users, hybrid for celebrities). Revisited in Spotify case study (friends top-K as fan-in).
+
+## Supply Chain Analogy
+
+Fan-out = **make-to-stock**: manufacture and store inventory before demand arrives. Consumer pulls from warehouse. Fast to serve, expensive to produce upfront.
+
+Fan-in = **make-to-order**: manufacture only when customer orders. No inventory cost, but latency at order time.
+
+**Why "push vs. pull" is confusing**: the label depends on your vantage point.
+- From the producer: fan-out = push (I push to all feeds at write time)
+- From the consumer: fan-out = pull (I pull from my precomputed feed at read time)
+
+Use make-to-stock / make-to-order instead — they name the strategy, not the vantage point.
