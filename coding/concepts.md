@@ -201,12 +201,15 @@ class WebCrawler:
             for child in child_urls:
                 if await self.visited.check_and_add(child):
                     await self.queue.put(child)
+            self.queue.task_done()        # signal this item fully processed
 
     async def crawl(self, start_url: str):
         await self.visited.check_and_add(start_url)
         await self.queue.put(start_url)
         workers = [asyncio.create_task(self._worker()) for _ in range(self.max_workers)]
-        await asyncio.gather(*workers)
+        await self.queue.join()           # blocks until all task_done() calls match put() calls
+        for w in workers:
+            w.cancel()                    # workers are stuck at queue.get() — safe to cancel
 
 # Usage
 crawler = WebCrawler(
@@ -219,8 +222,10 @@ asyncio.run(crawler.crawl("https://example.com"))
 **Key patterns:**
 - `VisitedUrls.check_and_add` — lock is internal, never exposed. Check + add is atomic.
 - `asyncio.Queue.get()` — suspends worker if queue is empty; resumes when item arrives
+- `queue.task_done()` — signals one item fully processed (including any child URLs added)
+- `queue.join()` — waits until every `put()` has a matching `task_done()`; then crawl is complete
+- `worker.cancel()` — workers are suspended at `queue.get()` at this point; safe to cancel
 - `asyncio.create_task` — schedules coroutine on event loop without awaiting it immediately
-- `asyncio.gather` — waits for all workers (runs them concurrently)
 
 ---
 
