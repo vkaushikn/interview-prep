@@ -14,6 +14,7 @@ Core patterns for distributed system design interviews.
 - [CDN vs. Geo-Distributed Edge Cache](system_design/cdn_vs_edge_cache.md) — CDNs cache shared content; personalized feeds need a regional KV store for locality not amplification.
 - [Read-Your-Own-Writes (RYOW)](system_design/read_your_own_writes.md) — staleness/propagation-delay between a write and the read path seeing it.
 - [Merging a Sorted Stream Without Re-sorting](system_design/merge_sorted_stream_no_resort.md) — process new items in time order, head-push/tail-pop into affected lists — O(1), no sort.
+- [Raft-Style Leader Election](system_design/raft_leader_election.md) — randomized election timeouts, majority-vote term-fencing, partition-vs-crash distinction; stale follower reads are safe only when the eventual write re-validates (optimistic-locking shape again).
 
 ---
 
@@ -21,7 +22,7 @@ Core patterns for distributed system design interviews.
 
 Numbers to reason with live — not to memorize precisely.
 
-- [Order-of-Magnitude Capacity Benchmarks](approximations/capacity_benchmarks.md) — per-node throughput rules of thumb (cache/DB/queue), the ÷10 ladder, row-size estimation buckets.
+- [Order-of-Magnitude Capacity Benchmarks](approximations/capacity_benchmarks.md) — per-node throughput rules of thumb (cache/DB/queue), the ÷10 ladder, row-size estimation buckets, and the single-number conservative anchors table.
 - [Latency Numbers Worth Knowing](approximations/latency_numbers.md) — human perception thresholds and the memory/SSD/network access ladder.
 
 ---

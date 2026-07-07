@@ -65,6 +65,20 @@ Why these three numbers: 8 bytes = one int64 = a CPU word, covers any numeric fi
 
 **Time conversion used throughout this file's QPS math:** 1 day ≈ 10⁵ seconds (real: 86,400); 1 year ≈ 3×10⁷ seconds, or just multiply a daily number by 365.
 
+## Single-number quick reference (conservative anchors, not ranges)
+
+Ranges are accurate but hard to recall under pressure. The fix: collapse each range to **one number, always the conservative (lower-capacity) end** — overestimating capacity and calling something "fine" when it isn't is a correctness failure live in the room; underestimating just costs a little unnecessary headroom. A defensible, deliberately-conservative number is also robust against a hard-to-please interviewer: there's no "actually the real number is higher" rebuttal that hurts you, since you already rounded down on purpose.
+
+Only **three numbers are actually hardware facts**, reused across every component below — disk ceiling, RAM ceiling, network bandwidth. What differs per component is (a) which dimensions are even relevant, and (b) the operation-specific throughput, which differs because of *why* each system is fast or slow (durability tax, sequential-vs-random access, etc.) — not because the hardware changed.
+
+| | Disk | RAM | Throughput | Network |
+|---|---|---|---|---|
+| **DB** | 100TB | 2TB | 1K writes/sec, 10K reads/sec (writes pay a durability/replication tax reads don't) | 100MB/sec |
+| **Cache** | — (no durability requirement — data loss on restart is acceptable) | 2TB *(reused)* | 100K/sec, read+write symmetric (no durability tax to split them) | 100MB/sec *(reused)* |
+| **Queue** | 100TB *(reused, for retention)* | will not bind (no random-access index — consumers track a sequential offset) | 100K/sec put+get | 100MB/sec *(reused)* |
+
+**Always run the network check, not just the throughput-count check** — it's easy to forget because the count number can look safe while the byte rate isn't. `ops/sec × avg payload size` vs. the 100MB/sec anchor: DB reads (10K/sec) have ~10KB of byte-budget per op before bandwidth binds; cache (100K/sec) only has ~1KB per op, already at the edge; queue messages vary the most in size, so this is the one most likely to actually bite. A low op-count alone never proves you're safe — multiply it out first. (This is also the check that catches a design smell, not just a sizing miss — e.g., "querying full photo objects through a DB" fails this math by 20-500x, which is really a signal the blob/metadata split was skipped, not that more bandwidth is needed.)
+
 ## The 60-second recipe
 
 1. Get a total scale number from your stated Assumptions (e.g., "100M keys, read-heavy, 500K reads/sec at peak").
