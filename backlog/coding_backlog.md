@@ -34,3 +34,19 @@ This is an IYKYK problem. Not reasonably derivable cold. Memorize the DLL approa
 - IP address iterator — stateful iterator, subnet math
 - Partition equal subset sum — 0/1 knapsack DP
 - Edit distance / LCS — 2D DP strings
+
+---
+
+## System Design Backlog
+
+### Weak — needs full ACID treatment + rapid-fire failure modes
+
+**Ticketmaster**
+- Current case study (`Case Study/system_design/ticketmaster.md`) is skeletal — happy path only.
+- Specific gaps: double-booking race condition mechanics, saga pattern for payment crash, expiry job failure modes, lazy-check at payment time, optimistic locking (conditional UPDATE) on concurrent expiry + payment.
+- Practice: build ACID from scratch without looking at the file, then do rapid-fire on all failure modes.
+
+**Stripe / Payments**
+- Concept notes exist (`Case Study/system_design/stripe_payments.md`) but never practiced end-to-end.
+- Specific gaps: idempotency key scoping (user + operation, not just operation), in-flight race on duplicate keys, double-entry bookkeeping atomicity, webhook flow + connection pool collapse under external wait, TTL trade-off on idempotency key store.
+- Practice: build ACID from scratch, specifically stress the webhook + DB-connection-hold failure mode (this was a gap in today's Ticketmaster session too).
