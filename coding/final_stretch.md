@@ -8,7 +8,8 @@ Two problems per pattern. Solve cold, no hints. After each, note the key insight
 | **Two Pointers** | LC 11 — Container With Most Water | LC 15 — 3Sum |
 | **Binary Search** | LC 33 — Search in Rotated Sorted Array | LC 875 — Koko Eating Bananas |
 | **Trees** | LC 236 — Lowest Common Ancestor | LC 124 — Binary Tree Maximum Path Sum |
-| **Graphs** | LC 207 — Course Schedule (topo sort) | LC 417 — Pacific Atlantic Water Flow |
+| **Graphs (BFS/DFS)** | LC 994 — Rotting Oranges | LC 417 — Pacific Atlantic Water Flow |
+| **Topological Sort** | LC 207 — Course Schedule | LC 210 — Course Schedule II |
 | **DP 1D** | LC 300 — Longest Increasing Subsequence | LC 139 — Word Break |
 | **DP 2D** | LC 1143 — Longest Common Subsequence | LC 72 — Edit Distance |
 | **Backtracking** | LC 39 — Combination Sum | LC 46 — Permutations |
@@ -71,6 +72,8 @@ def decode(s):
 | "prerequisites, ordering" | Topological sort |
 | "shortest path, fewest steps" | BFS |
 | "all paths, combinations, subsets" | Backtracking |
+| "prerequisites, ordering, dependencies" | Topological sort |
+| "detect cycle in directed graph" | Topological sort (or DFS with path set) |
 | "top K, Kth largest/smallest" | Heap |
 | "next greater element" | Monotonic stack |
 | "overlapping subproblems, optimal substructure" | DP |
