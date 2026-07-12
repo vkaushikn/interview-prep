@@ -8,7 +8,8 @@ Two problems per pattern. Solve cold, no hints. After each, note the key insight
 | **Two Pointers** | LC 11 — Container With Most Water | LC 15 — 3Sum |
 | **Binary Search** | LC 33 — Search in Rotated Sorted Array | LC 875 — Koko Eating Bananas |
 | **Trees** | LC 236 — Lowest Common Ancestor | LC 124 — Binary Tree Maximum Path Sum |
-| **Graphs (BFS/DFS)** | LC 994 — Rotting Oranges | LC 417 — Pacific Atlantic Water Flow |
+| **DFS** | LC 200 — Number of Islands | LC 417 — Pacific Atlantic Water Flow |
+| **BFS** | LC 994 — Rotting Oranges | LC 127 — Word Ladder |
 | **Topological Sort** | LC 207 — Course Schedule | LC 210 — Course Schedule II |
 | **DP 1D** | LC 300 — Longest Increasing Subsequence | LC 139 — Word Break |
 | **DP 2D** | LC 1143 — Longest Common Subsequence | LC 72 — Edit Distance |
